@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agricultural Digital Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    #chat-container {
+      width: 50%;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px gray;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px;
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    #chat-history {
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: #fff;
+      border-radius: 5px;
+    }
+    .user-message {
+      color: blue;
+      font-weight: bold;
+    }
+    .bot-message {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌾 Welcome to the Agricultural Digital Assistant</h1>
+
+  <div id="chat-container">
+    <input type="text" id="userInput" placeholder="Ask your question..." />
+    <button onclick="sendMessage()">Ask</button>
+
+    <div id="chat-history">
+      <p><i>Start chatting with the chatbot...</i></p>
+    </div>
+  </div>
+
+  <script>
+    function sendMessage() {
+      const userMessage = document.getElementById("userInput").value.trim();
+      if (userMessage === "") return;
+
+      const chatHistory = document.getElementById("chat-history");
+
+      // Add user message
+      const userText = document.createElement("p");
+      userText.innerHTML = `<span class="user-message">You:</span> ${userMessage}`;
+      chatHistory.appendChild(userText);
+
+      // Add a temporary loading message
+      const loadingText = document.createElement("p");
+      loadingText.innerHTML = `<span class="bot-message">Bot:</span> Thinking...`;
+      chatHistory.appendChild(loadingText);
+
+      // Send message to backend
+      fetch("/chatbot/response/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ question: userMessage })
+      })
+      .then(response => response.json())
+      .then(data => {
+        loadingText.remove(); // Remove "Thinking..." message
+
+        const botText = document.createElement("p");
+        botText.innerHTML = `<span class="bot-message">Bot:</span> ${data.answer || data.error}`;
+        chatHistory.appendChild(botText);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      })
+      .catch(error => {
+        loadingText.remove();
+        const errorText = document.createElement("p");
+        errorText.innerHTML = `<span class="bot-message">Bot:</span> Sorry, something went wrong.`;
+        chatHistory.appendChild(errorText);
+        console.error("Error:", error);
+      });
+
+      // Clear input
+      document.getElementById("userInput").value = "";
+    }
+  </script>
+
+</body>
+</html>
